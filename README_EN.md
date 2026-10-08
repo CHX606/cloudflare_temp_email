@@ -1,106 +1,49 @@
 <!-- markdownlint-disable-file MD033 MD045 -->
-# Cloudflare Temp Email - Free Temporary Email Service
+# Cloudflare Self-hosted Temporary Email
 
-<p align="center">
-  <a href="https://temp-mail-docs.awsl.uk" target="_blank">
-    <img alt="docs" src="https://img.shields.io/badge/docs-grey?logo=vitepress">
-  </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest" target="_blank">
-    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/LICENSE" target="_blank">
-    <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/graphs/contributors" target="_blank">
-   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="">
-    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="">
-    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email">
-  </a>
-</p>
+A self-hosted temporary email service built with Cloudflare Workers, D1 and Email Routing. It provides custom-domain mailbox management, sending and receiving mail, and attachment viewing, with access through the web interface, SMTP/IMAP proxy and agent APIs.
 
-<p align="center">
-  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
-    <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub" height="30"/>
-  </a>
-</p>
+This repository is derived from [dreamhunter2333/cloudflare_temp_email](https://github.com/dreamhunter2333/cloudflare_temp_email) and retains its commit history and [MIT license](LICENSE). The core features below come from upstream; documentation updates in this branch are recorded in the [changelog](CHANGELOG_EN.md).
 
-<p align="center">
-  <a href="README.md">中文文档</a> |
-  <a href="README_EN.md">English Document</a>
-</p>
+[中文](README.md) · [English](README_EN.md) · [Upstream deployment documentation](https://temp-mail-docs.awsl.uk)
 
-> This project is for learning and personal use only. Please do not use it for any illegal activities, or you will be responsible for the consequences.
+## Overview
 
-**A fully-featured temporary email service!**
+| Scenario | Implementation and capabilities |
+| --- | --- |
+| Custom-domain inboxes | Email Routing delivers incoming mail to the Worker for processing and D1 storage, with address creation, passwords and lifecycle management. |
+| Mail and attachments | The web inbox supports mail search and body/attachment viewing. The frontend tries Rust WASM parsing first and falls back to postal-mime. |
+| Sending mail | Resend, SMTP and other send methods require their corresponding services, domain settings and send allowances. |
+| Access management | User accounts, OAuth2, Passkey, address credentials, site access passwords and domain permissions are available. |
+| Integrations | Mail forwarding, webhooks, Telegram notifications and an SMTP/IMAP proxy are supported. |
+| Agent access | Parsed-mail APIs and a [mailbox skill](skills/cf-temp-mail-agent-mail/SKILL.md) use address credentials supplied by the user. |
 
-- **Completely Free** - Built on Cloudflare's free services with zero cost
-- **High Performance** - Rust WASM email parsing for extremely fast response
-- **Modern UI** - Responsive design with multi-language support and easy operation
-- **Address Password** - Support setting individual passwords for email addresses to enhance security
-- **Agent-friendly** - Built-in mailbox [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md) for AI agents
-- **Mobile admin** - Community client [CloudMail](https://github.com/Lur1N77777/CloudMail) for Android admin and mailbox management
+## Technology
 
-## Deployment Documentation - Quick Start
+- Backend: TypeScript, Hono, Cloudflare Workers, Email Routing and D1.
+- Frontend: Vue 3, Vite and Naive UI, deployed with Cloudflare Pages or Worker static assets.
+- Parsing: postal-mime is the default Worker parser; the frontend uses mail-parser-wasm with a postal-mime fallback.
+- Optional components: KV, R2/S3, Workers AI, Resend and the Python SMTP/IMAP proxy.
+- Automated tests: Playwright, Docker Compose and Mailpit cover API, browser and mail-proxy scenarios in the repository.
 
-[Documentation](https://temp-mail-docs.awsl.uk) | [Github Action Deployment Guide](https://temp-mail-docs.awsl.uk/en/guide/actions/github-action.html)
+## Operational boundaries
 
-<a href="https://temp-mail-docs.awsl.uk/en/guide/actions/github-action.html">
-  <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" height="32">
-</a>
+Receiving mail requires Email Routing configuration for your domain. Sending, object storage, AI extraction and notifications depend on the configured services and quotas. Costs vary with the domain, service plans and usage.
 
-## Changelog
+The existing agent skill reads or sends mail using an address credential. It does not create mailboxes or provide task-scoped, read-only credentials. This document describes code capabilities and does not claim an independently deployed instance, cost evaluation or performance acceptance for this branch.
 
-See [CHANGELOG](CHANGELOG.md) for the latest updates.
+## Deployment and documentation
 
-## Live Demo
+- [Upstream quick start](https://temp-mail-docs.awsl.uk/en/guide/quick-start.html)
+- [GitHub Actions deployment](https://temp-mail-docs.awsl.uk/en/guide/actions/github-action.html)
+- [Worker configuration](worker/wrangler.toml.template)
+- [Agent email APIs](vitepress-docs/docs/en/guide/feature/agent-email.md)
+- [End-to-end tests](e2e/README.md)
+- [Changelog](CHANGELOG_EN.md)
 
-Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
+## Upstream demo
 
-<details>
-<summary>Service Status Monitoring (Click to expand/collapse)</summary>
-
-|                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Backend](https://temp-email-api.awsl.uk/) | [![Deploy Backend Production](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/backend_deploy.yaml/badge.svg)](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/backend_deploy.yaml) ![](https://uptime.aks.awsl.icu/api/badge/10/status) ![](https://uptime.aks.awsl.icu/api/badge/10/uptime) ![](https://uptime.aks.awsl.icu/api/badge/10/ping) ![](https://uptime.aks.awsl.icu/api/badge/10/avg-response) ![](https://uptime.aks.awsl.icu/api/badge/10/cert-exp) ![](https://uptime.aks.awsl.icu/api/badge/10/response) |
-| [Frontend](https://mail.awsl.uk/)          | [![Deploy Frontend](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/frontend_deploy.yaml/badge.svg)](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/frontend_deploy.yaml) ![](https://uptime.aks.awsl.icu/api/badge/12/status) ![](https://uptime.aks.awsl.icu/api/badge/12/uptime) ![](https://uptime.aks.awsl.icu/api/badge/12/ping) ![](https://uptime.aks.awsl.icu/api/badge/12/avg-response) ![](https://uptime.aks.awsl.icu/api/badge/12/cert-exp) ![](https://uptime.aks.awsl.icu/api/badge/12/response)         |
-
-</details>
-
-<details>
-<summary>Star History (Click to expand/collapse)</summary>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
-</picture>
-
-</details>
-
-<details open>
-<summary>Table of Contents (Click to expand/collapse)</summary>
-
-- [Cloudflare Temp Email - Free Temporary Email Service](#cloudflare-temp-email---free-temporary-email-service)
-  - [Deployment Documentation - Quick Start](#deployment-documentation---quick-start)
-  - [Changelog](#changelog)
-  - [Live Demo](#live-demo)
-  - [Core Features](#core-features)
-    - [Email Processing](#email-processing)
-    - [User Management](#user-management)
-    - [Admin Features](#admin-features)
-    - [Multi-language \& Interface](#multi-language--interface)
-    - [Integration \& Extensions](#integration--extensions)
-  - [Technical Architecture](#technical-architecture)
-    - [System Architecture](#system-architecture)
-    - [Tech Stack](#tech-stack)
-    - [Main Components](#main-components)
-  - [Join the Community](#join-the-community)
-
-</details>
+[mail.awsl.uk](https://mail.awsl.uk/) is an upstream demonstration instance, not an independent deployment by this repository's maintainer. Check deployment guidance against this branch's version and your configuration.
 
 ## Core Features
 
@@ -109,7 +52,7 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
 ### Email Processing
 
-- [x] Use `rust wasm` to parse emails, with fast parsing speed. Almost all emails can be parsed. Even emails that Node.js parsing modules fail to parse can be successfully parsed by rust wasm
+- [x] The frontend tries `mail-parser-wasm` first and falls back to `postal-mime`; the Worker uses `postal-mime` by default
 - [x] **AI Email Recognition** - Use Cloudflare Workers AI to automatically extract verification codes, authentication links, service links and other important information from emails
 - [x] Support optional random second-level subdomain mailbox creation for selected base domains
 - [x] Support sending emails with `DKIM` verification
@@ -171,9 +114,9 @@ Try it now → [https://mail.awsl.uk/](https://mail.awsl.uk/)
 
 ### Tech Stack
 
-- **Frontend**: Vue 3 + Vite + TypeScript
+- **Frontend**: Vue 3 + Vite + Naive UI
 - **Backend**: TypeScript + Cloudflare Workers
-- **Email Parsing**: Rust WASM (mail-parser-wasm)
+- **Email Parsing**: postal-mime in the Worker; Rust WASM with a postal-mime fallback in the frontend
 - **Database**: Cloudflare D1 (SQLite)
 - **Storage**: Cloudflare KV + R2 (optional S3)
 - **Proxy Service**: Python SMTP/IMAP Proxy Server

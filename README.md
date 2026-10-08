@@ -1,106 +1,49 @@
 <!-- markdownlint-disable-file MD033 MD045 -->
-# Cloudflare 临时邮箱 - 免费搭建临时邮件服务
+# Cloudflare 自托管临时邮箱
 
-<p align="center">
-  <a href="https://temp-mail-docs.awsl.uk" target="_blank">
-    <img alt="docs" src="https://img.shields.io/badge/docs-grey?logo=vitepress">
-  </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/releases/latest" target="_blank">
-    <img src="https://img.shields.io/github/v/release/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/LICENSE" target="_blank">
-    <img alt="MIT License" src="https://img.shields.io/github/license/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="https://github.com/dreamhunter2333/cloudflare_temp_email/graphs/contributors" target="_blank">
-   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="">
-    <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/dreamhunter2333/cloudflare_temp_email">
-  </a>
-  <a href="">
-    <img src="https://img.shields.io/github/last-commit/dreamhunter2333/cloudflare_temp_email">
-  </a>
-</p>
+基于 Cloudflare Workers、D1 和 Email Routing 的自托管临时邮箱服务，提供自定义域名地址管理、邮件收发和附件查看，可通过 Web 界面、SMTP/IMAP 代理及 Agent 接口访问邮箱。
 
-<p align="center">
-  <a href="https://hellogithub.com/repository/2ccc64bb1ba346b480625f584aa19eb1" target="_blank">
-    <img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=2ccc64bb1ba346b480625f584aa19eb1&claim_uid=FxNypXK7UQ9OECT" alt="Featured｜HelloGitHub" height="30"/>
-  </a>
-</p>
+本仓库源自 [dreamhunter2333/cloudflare_temp_email](https://github.com/dreamhunter2333/cloudflare_temp_email)，保留上游提交历史及 [MIT 许可证](LICENSE)。下述核心功能来自上游；本分支的介绍整理记录在 [更新日志](CHANGELOG.md) 中。
 
-<p align="center">
-  <a href="README.md">中文文档</a> |
-  <a href="README_EN.md">English Document</a>
-</p>
+[中文](README.md) · [English](README_EN.md) · [上游部署文档](https://temp-mail-docs.awsl.uk)
 
-> 本项目仅供学习和个人用途，请勿将其用于任何违法行为，否则后果自负。
+## 功能概览
 
-**一个功能完整的临时邮箱服务！**
+| 场景 | 实现与能力 |
+| --- | --- |
+| 自定义域名收件 | Email Routing 将来信交给 Worker 处理，邮件保存在 D1，支持地址创建、密码和生命周期管理。 |
+| 邮件阅读与附件 | Web 收件箱支持邮件检索、正文和附件查看；前端优先使用 Rust WASM 解析邮件，并以 postal-mime 回退。 |
+| 按需发信 | 支持 Resend、SMTP 等发送方式，需配置对应服务、域名和发送额度。 |
+| 用户与站点访问 | 支持用户账号、OAuth2、Passkey、地址凭证、站点访问密码和域名权限配置。 |
+| 通知与集成 | 支持邮件转发、Webhook、Telegram 推送及 SMTP/IMAP 代理。 |
+| Agent 访问 | 提供解析后的邮件查询接口和 [邮箱使用 skill](skills/cf-temp-mail-agent-mail/SKILL.md)，由用户提供邮箱地址凭证。 |
 
-- **完全免费** - 基于 Cloudflare 免费服务构建，零成本运行
-- **高性能** - Rust WASM 邮件解析，响应速度极快
-- **现代化界面** - 响应式设计，支持多语言，操作简便
-- **地址密码** - 支持为邮箱地址设置独立密码，增强安全性
-- **Agent 友好** - 内置邮箱 [`skill`](skills/cf-temp-mail-agent-mail/SKILL.md)，方便 AI agent 使用邮箱
-- **移动端管理** - 社区客户端 [CloudMail](https://github.com/Lur1N77777/CloudMail)，支持 Android 管理后台和邮箱管理
+## 技术组成
 
-## 部署文档 - 快速开始
+- 后端：TypeScript、Hono、Cloudflare Workers、Email Routing、D1。
+- 前端：Vue 3、Vite、Naive UI；通过 Cloudflare Pages 或 Worker 静态资源部署。
+- 邮件解析：Worker 默认使用 postal-mime；前端使用 mail-parser-wasm，并保留 postal-mime 回退。
+- 可选组件：KV、R2/S3、Workers AI、Resend、Python SMTP/IMAP 代理。
+- 自动化测试：仓库包含基于 Playwright、Docker Compose 和 Mailpit 的 API、浏览器及邮件代理测试。
 
-[部署文档](https://temp-mail-docs.awsl.uk) | [Github Action 部署文档](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
+## 使用边界
 
-<a href="https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html">
-  <img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" height="32">
-</a>
+收件需要配置自有域名的 Email Routing；发信、对象存储、AI 提取和通知集成取决于实际配置及服务额度。部署成本随域名、服务套餐和使用量变化。
 
-## 更新日志
+现有 Agent skill 使用邮箱地址凭证查询或发送邮件，不负责创建邮箱，也未提供任务级只读凭证隔离。本文描述代码能力，不代表本分支已完成独立部署、成本评估或性能验收。
 
-查看 [CHANGELOG](CHANGELOG.md) 了解最新更新内容。
+## 部署与文档
 
-## 在线体验
+- [上游快速开始](https://temp-mail-docs.awsl.uk/zh/guide/quick-start.html)
+- [GitHub Actions 部署](https://temp-mail-docs.awsl.uk/zh/guide/actions/github-action.html)
+- [Worker 配置](worker/wrangler.toml.template)
+- [Agent 邮箱接口说明](vitepress-docs/docs/zh/guide/feature/agent-email.md)
+- [端到端测试说明](e2e/README.md)
+- [更新日志](CHANGELOG.md)
 
-立即体验 → [https://mail.awsl.uk/](https://mail.awsl.uk/)
+## 上游演示
 
-<details>
-<summary>服务状态监控（点击收缩/展开）</summary>
-
-|                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [Backend](https://temp-email-api.awsl.uk/) | [![Deploy Backend Production](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/backend_deploy.yaml/badge.svg)](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/backend_deploy.yaml) ![](https://uptime.aks.awsl.icu/api/badge/10/status) ![](https://uptime.aks.awsl.icu/api/badge/10/uptime) ![](https://uptime.aks.awsl.icu/api/badge/10/ping) ![](https://uptime.aks.awsl.icu/api/badge/10/avg-response) ![](https://uptime.aks.awsl.icu/api/badge/10/cert-exp) ![](https://uptime.aks.awsl.icu/api/badge/10/response) |
-| [Frontend](https://mail.awsl.uk/)          | [![Deploy Frontend](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/frontend_deploy.yaml/badge.svg)](https://github.com/dreamhunter2333/cloudflare_temp_email/actions/workflows/frontend_deploy.yaml) ![](https://uptime.aks.awsl.icu/api/badge/12/status) ![](https://uptime.aks.awsl.icu/api/badge/12/uptime) ![](https://uptime.aks.awsl.icu/api/badge/12/ping) ![](https://uptime.aks.awsl.icu/api/badge/12/avg-response) ![](https://uptime.aks.awsl.icu/api/badge/12/cert-exp) ![](https://uptime.aks.awsl.icu/api/badge/12/response)         |
-
-</details>
-
-<details>
-<summary>Star History（点击收缩/展开）</summary>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
-  <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=dreamhunter2333/cloudflare_temp_email&type=Date" />
-</picture>
-
-</details>
-
-<details open>
-<summary>目录（点击收缩/展开）</summary>
-
-- [Cloudflare 临时邮箱 - 免费搭建临时邮件服务](#cloudflare-临时邮箱---免费搭建临时邮件服务)
-  - [部署文档 - 快速开始](#部署文档---快速开始)
-  - [更新日志](#更新日志)
-  - [在线体验](#在线体验)
-  - [核心功能](#核心功能)
-    - [邮件处理](#邮件处理)
-    - [用户管理](#用户管理)
-    - [管理功能](#管理功能)
-    - [多语言与界面](#多语言与界面)
-    - [集成与扩展](#集成与扩展)
-  - [技术架构](#技术架构)
-    - [系统架构](#系统架构)
-    - [技术栈](#技术栈)
-    - [主要组件](#主要组件)
-  - [加入社区](#加入社区)
-
-</details>
+[mail.awsl.uk](https://mail.awsl.uk/) 是上游项目提供的演示实例，不代表本仓库维护者的独立部署。部署和功能说明请结合本分支版本及所用配置核对。
 
 ## 核心功能
 
@@ -109,7 +52,7 @@
 
 ### 邮件处理
 
-- [x] 使用 `rust wasm` 解析邮件，解析速度快，几乎所有邮件都能解析，node 的解析模块解析邮件失败的邮件，rust wasm 也能解析成功
+- [x] 前端优先使用 `mail-parser-wasm` 解析邮件，失败时回退到 `postal-mime`；Worker 默认使用 `postal-mime`
 - [x] **AI 邮件识别** - 使用 Cloudflare Workers AI 自动提取邮件中的验证码、认证链接、服务链接等重要信息
 - [x] 支持为指定基础域名创建随机二级域名邮箱地址，更适合收件隔离场景
 - [x] 支持发送邮件，支持 `DKIM` 验证
@@ -171,9 +114,9 @@
 
 ### 技术栈
 
-- **前端**: Vue 3 + Vite + TypeScript
+- **前端**: Vue 3 + Vite + Naive UI
 - **后端**: TypeScript + Cloudflare Workers
-- **邮件解析**: Rust WASM (mail-parser-wasm)
+- **邮件解析**: Worker 使用 postal-mime；前端使用 Rust WASM 并保留 postal-mime 回退
 - **数据库**: Cloudflare D1 (SQLite)
 - **存储**: Cloudflare KV + R2 (可选 S3)
 - **代理服务**: Python SMTP/IMAP Proxy Server
